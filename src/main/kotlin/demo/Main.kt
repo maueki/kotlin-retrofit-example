@@ -12,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 import com.google.gson.GsonBuilder
 import com.google.gson.FieldNamingPolicy
+import com.google.gson.annotations.SerializedName
 
 import java.util.Date
 import java.math.BigDecimal
@@ -37,12 +38,13 @@ class RetrofitYahooServiceFactory {
 //        val client = OkHttpClient.Builder().addInterceptor(interceptor).proxy(proxy).build()
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
-        val gson = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()
+//        val gson = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create()
 
         val retrofit = Retrofit.Builder()
                         .client(client)
                         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                        .addConverterFactory(GsonConverterFactory.create(gson))
+//                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .addConverterFactory(GsonConverterFactory.create())
                         .baseUrl("https://query.yahooapis.com/v1/public/")
                         .build()
 
@@ -66,9 +68,9 @@ data class YahooStockResults (
 )
 
 data class YahooStockQuote (
-        val symbol: String,
+        @SerializedName("symbol") val symbol: String,
         val name: String,
-        val lastTradePriceOnly: BigDecimal,
+        @SerializedName("LastTradePriceOnly") val lastTradePriceOnly: BigDecimal,
         val daysLow: BigDecimal,
         val daysHigh: BigDecimal,
         val volume: String
