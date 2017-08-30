@@ -16,8 +16,11 @@ import com.google.gson.FieldNamingPolicy
 import java.util.Date
 import java.math.BigDecimal
 import java.util.logging.Logger
+import java.net.Proxy
+import java.net.InetSocketAddress
 
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.Observable
 
 interface YahooService {
 @GET("yql?format=json")
@@ -30,6 +33,8 @@ class RetrofitYahooServiceFactory {
 
         val interceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
+//        val proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("proxy address", 8080))
+//        val client = OkHttpClient.Builder().addInterceptor(interceptor).proxy(proxy).build()
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         val gson = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()
@@ -78,9 +83,15 @@ fun main(args: Array<String>) {
         val env = "store://datatables.org/alltableswithkeys"
 
         yahooService.yqlQuery(query,env)
-                        .subscribeOn(Schedulers.io())
+//                        .subscribeOn(Schedulers.io())
 //                        .observeOn(Schedulers.single())
-                        .subscribe { data -> logger.info(data.query.results.quote.get(0).symbol) }
+                        .toObservable()
+                        .map { r -> r.query.results.quote }
+                        .flatMap { r -> Observable.fromIterable(r) }
+//                        .observeOn(Schedulers.single())
+                        .subscribe { data ->
+                                logger.info(data.symbol + ": " + data.lastTradePriceOnly)
+                        }
 
         println("Hello World!")
 }
